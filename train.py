@@ -9,6 +9,9 @@ from torchmeta.utils.data import BatchMetaDataLoader
 from model import ConvolutionalNeuralNetwork
 from utils import update_parameters, get_accuracy
 from torchsummary import summary
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter() 
+
 def train(args):
     dataset = miniimagenet(args.folder, shots=args.num_shots, ways=args.num_ways,
         shuffle=True, test_shots=15, meta_train=True, download=args.download)
@@ -40,10 +43,12 @@ def train(args):
             for task_idx, (train_input, train_target, test_input,
                     test_target) in enumerate(zip(train_inputs, train_targets,
                     test_inputs, test_targets)):
-                print('train input : {}'.format(train_input.shape))
+
                 train_logit = model(train_input)
 
                 inner_loss = F.cross_entropy(train_logit, train_target)
+                # writer.add_scalar('Loss/inner_loss', np.random.random(), task_idx)
+
 
                 model.zero_grad()
                 params = update_parameters(model, inner_loss,
@@ -51,6 +56,7 @@ def train(args):
 
                 test_logit = model(test_input, params=params)
                 outer_loss += F.cross_entropy(test_logit, test_target)
+                # writer.add_scalar('Loss/outer_loss', np.random.random(), n_iter)
 
                 with torch.no_grad():
                     accuracy += get_accuracy(test_logit, test_target)
@@ -62,6 +68,7 @@ def train(args):
             meta_optimizer.step()
 
             pbar.set_postfix(accuracy='{0:.4f}'.format(accuracy.item()))
+            writer.add_scalar('Accuracy/test', accuracy.item(), batch_idx)
             if batch_idx >= args.num_batches:
                 break
 

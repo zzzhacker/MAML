@@ -37,8 +37,6 @@ class ConvolutionalNeuralNetwork(MetaModule):
 
     def forward(self, inputs, params=None):
         features = self.features(inputs, params=get_subdict(params, 'features'))
-        print(features.shape)
         features = features.view((features.size(0), -1))
-        print(features.shape)
         logits = self.classifier(features, params=get_subdict(params, 'classifier'))
         return logits
