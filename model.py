@@ -28,7 +28,6 @@ class ConvolutionalNeuralNetwork(MetaModule):
         i = 4
         idim = input_dim
         for x in range(i):
-            print(x)
             idim = math.floor(idim/2)
 
         self.linear_input = hidden_size*idim*idim
