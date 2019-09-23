@@ -9,6 +9,7 @@ from torchmeta.utils.data import BatchMetaDataLoader
 from model import ConvolutionalNeuralNetwork
 from utils import update_parameters, get_accuracy
 from torchsummary import summary
+import torchvision
 from torch.utils.tensorboard import SummaryWriter
 writer = SummaryWriter() 
 
@@ -48,7 +49,10 @@ def train(args):
 
                 inner_loss = F.cross_entropy(train_logit, train_target)
                 # writer.add_scalar('Loss/inner_loss', np.random.random(), task_idx)
-
+                grid = torchvision.utils.make_grid(train_input)
+                writer.add_image('images', grid, 0)
+                writer.add_graph(model, train_input)
+                
 
                 model.zero_grad()
                 params = update_parameters(model, inner_loss,
@@ -71,6 +75,7 @@ def train(args):
             writer.add_scalar('Accuracy/test', accuracy.item(), batch_idx)
             if batch_idx >= args.num_batches:
                 break
+            writer.close()
 
     # Save model
     if args.output_folder is not None:
