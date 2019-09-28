@@ -28,6 +28,7 @@ def update_parameters(model, loss, step_size=0.5, first_order=False):
     for (name, param), grad in zip(model.meta_named_parameters(), grads):
         params[name] = param - step_size * grad
 
+
     return params
 
 def get_accuracy(logits, targets):

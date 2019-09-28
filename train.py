@@ -52,25 +52,25 @@ def train(args):
                 grid = torchvision.utils.make_grid(train_input)
                 writer.add_image('images', grid, 0)
                 writer.add_graph(model, train_input)
-                
+            
 
                 model.zero_grad()
                 params = update_parameters(model, inner_loss,
                     step_size=args.step_size, first_order=args.first_order)
-
                 test_logit = model(test_input, params=params)
                 outer_loss += F.cross_entropy(test_logit, test_target)
                 # writer.add_scalar('Loss/outer_loss', np.random.random(), n_iter)
-
+                for name , grads in model.meta_named_parameters():
+                    writer.add_histogram(name, grads, batch_idx)
                 with torch.no_grad():
                     accuracy += get_accuracy(test_logit, test_target)
+                    writer.add_histogram('meta parameters', grads, batch_idx)
 
             outer_loss.div_(args.batch_size)
             accuracy.div_(args.batch_size)
 
             outer_loss.backward()
             meta_optimizer.step()
-
             pbar.set_postfix(accuracy='{0:.4f}'.format(accuracy.item()))
             writer.add_scalar('Accuracy/test', accuracy.item(), batch_idx)
             if batch_idx >= args.num_batches:
